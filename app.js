@@ -1,3 +1,4 @@
+"use strict";
 async function carregarDashboard() {
     try {
         const resposta = await fetch('api.php');
@@ -44,4 +45,3 @@ function atualizarInterface(faturamento, total, filtrados) {
         elFiltrados.innerText = filtrados.toString();
 }
 document.addEventListener('DOMContentLoaded', carregarDashboard);
-export {};

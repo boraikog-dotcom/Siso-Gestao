@@ -1,4 +1,3 @@
-export {};
 interface Consulta {
     id_consulta: number;
     paciente_nome: string;
@@ -49,14 +48,14 @@ function parseValorMonetario(valor: string | number | null | undefined): number 
 }
 
 function atualizarInterface(faturamento: number, total: number, filtrados: number): void {
-    const elFaturamento = (document as any).getElementById('card-faturamento');
+    const elFaturamento = document.getElementById('card-faturamento');
     if (elFaturamento) elFaturamento.innerText = `R$ ${faturamento.toFixed(2)}`;
 
-    const elTotal = (document as any).getElementById('card-total');
+    const elTotal = document.getElementById('card-total');
     if (elTotal) elTotal.innerText = total.toString();
 
-    const elFiltrados = (document as any).getElementById('card-filtrados');
+    const elFiltrados = document.getElementById('card-filtrados');
     if (elFiltrados) elFiltrados.innerText = filtrados.toString();
 }
 
-(document as any).addEventListener('DOMContentLoaded', carregarDashboard);
+document.addEventListener('DOMContentLoaded', carregarDashboard);
