@@ -1,3 +1,4 @@
+export {};
 interface Consulta {
     id_consulta: number;
     paciente_nome: string;
@@ -19,14 +20,17 @@ async function carregarDashboard(): Promise<void> {
             atualizarInterface(0, 0, 0);
             return;
         }
+
         const faturamento = dados.reduce((total: number, item: Consulta) => {
             const valorTratado = parseValorMonetario(item.valor_final);
             return total + valorTratado;
         }, 0);
+
         const maisCaros = dados.filter((item: Consulta) => {
             const valor = parseValorMonetario(item.valor_final);
             return valor >= 150;
         });
+
         atualizarInterface(faturamento, dados.length, maisCaros.length);
 
     } catch (erro) {
@@ -45,14 +49,14 @@ function parseValorMonetario(valor: string | number | null | undefined): number 
 }
 
 function atualizarInterface(faturamento: number, total: number, filtrados: number): void {
-    const elFaturamento = document.getElementById('card-faturamento');
+    const elFaturamento = (document as any).getElementById('card-faturamento');
     if (elFaturamento) elFaturamento.innerText = `R$ ${faturamento.toFixed(2)}`;
 
-    const elTotal = document.getElementById('card-total');
+    const elTotal = (document as any).getElementById('card-total');
     if (elTotal) elTotal.innerText = total.toString();
 
-    const elFiltrados = document.getElementById('card-filtrados');
+    const elFiltrados = (document as any).getElementById('card-filtrados');
     if (elFiltrados) elFiltrados.innerText = filtrados.toString();
 }
 
-document.addEventListener('DOMContentLoaded', carregarDashboard);
+(document as any).addEventListener('DOMContentLoaded', carregarDashboard);
