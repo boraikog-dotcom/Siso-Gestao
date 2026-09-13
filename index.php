@@ -1,33 +1,65 @@
 <?php
 require_once "config.php";
-include_once "cabecalho.php";
-
-$busca = isset($_GET['busca']) ? $_GET['busca'] : '';
-
-// Consulta via View criada para a Sprint 1
-$sql = "SELECT * FROM vw_dashboard_consultas";
-
-if ($busca != '') {
-    $sql = $sql . " WHERE paciente_nome LIKE '%$busca%' OR dentista_nome LIKE '%$busca%'";
-}
-
-$executar = $conexao->query($sql);
-$listaConsultas = $executar->fetchAll(PDO::FETCH_ASSOC);
-
-$totalConsultas = count($listaConsultas);
+include_once "templates/cabecalho.php";
 
 if (isset($_GET['id_excluir'])) {
-    $id_para_excluir = $_GET['id_excluir'];
-    $sqlDeletar = "DELETE FROM consultas WHERE id_consulta = '$id_para_excluir'";
+    $id_excluir = $_GET['id_excluir'];
 
-    if ($conexao->query($sqlDeletar)) {
-        echo "<script>window.location.href='index.php';</script>";
+    try {
+        $stmtDel = $conexao->prepare("DELETE FROM consultas WHERE id_consulta = :id");
+        $stmtDel->bindValue(':id', $id_excluir, PDO::PARAM_INT);
+
+        if ($stmtDel->execute()) {
+            header("Location: index.php?msg=deletado");
+            exit();
+        }
+    } catch (PDOException $e) {
+        header("Location: index.php?msg=erro");
         exit();
     }
 }
+
+$busca = isset($_GET['busca']) ? $_GET['busca'] : '';
+$pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+$limite = 10;
+
+$stmt = $conexao->prepare("CALL sp_listar_consultas(:busca, :limite, :pagina)");
+$stmt->bindValue(':busca', $busca, PDO::PARAM_STR);
+$stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+$stmt->bindValue(':pagina', $pagina, PDO::PARAM_INT);
+$stmt->execute();
+
+$listaConsultas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$stmt->closeCursor();
+
+$sqlContador = "SELECT COUNT(*) as total FROM consultas";
+$executarContador = $conexao->query($sqlContador);
+$totalConsultas = $executarContador->fetch(PDO::FETCH_ASSOC)['total'];
+
+$sqlFaturamento = "SELECT SUM(valor_base) as total_faturamento FROM consultas JOIN procedimentos ON consultas.id_procedimento = procedimentos.id_procedimento";
+$execFaturamento = $conexao->query($sqlFaturamento);
+$rowFaturamento = $execFaturamento->fetch(PDO::FETCH_ASSOC);
+$faturamentoTotal = $rowFaturamento['total_faturamento'] ?? 0;
+
+$sqlProc150 = "SELECT COUNT(*) as total FROM consultas JOIN procedimentos ON consultas.id_procedimento = procedimentos.id_procedimento WHERE procedimentos.valor_base >= 150";
+$execProc150 = $conexao->query($sqlProc150);
+$totalProc150 = $execProc150->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
 ?>
 
-<!-- Formulario de Busca Mantido -->
+<?php if (isset($_GET['msg']) && $_GET['msg'] == 'deletado'): ?>
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+        ✅ <strong>Sucesso!</strong> Consulta excluída com sucesso.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
+
+<?php if (isset($_GET['msg']) && $_GET['msg'] == 'erro'): ?>
+    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+        ⚠️ <strong>Erro:</strong> Não foi possível excluir a consulta.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
+
 <div class="row mb-4">
     <div class="col-md-6">
         <form method="GET" action="index.php" class="d-flex">
@@ -38,43 +70,45 @@ if (isset($_GET['id_excluir'])) {
     </div>
 </div>
 
-<!-- Alert do Contador Mantido -->
-<div class="alert alert-info mb-4">
+<div class="alert alert-info mb-4" style="background-color: #d1ecf1; border-color: #bee5eb; color: #0c5460;">
     Atualmente existem <?php echo $totalConsultas; ?> consultas no sistema.
 </div>
 
-<!-- Indicadores de Totais gerados via JS/TS -->
 <div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card text-white bg-success shadow-sm">
+    <div class="col-md-4 mb-3">
+        <div class="card text-white h-100 shadow-sm" style="background-color: #198754;">
             <div class="card-body">
                 <h5 class="card-title">Faturamento Total</h5>
-                <h3 id="card-faturamento" class="card-text">R$ 0,00</h3>
+                <h2 class="card-text">R$ <?php echo number_format($faturamentoTotal, 2, ',', '.'); ?></h2>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-primary shadow-sm">
+    
+    <div class="col-md-4 mb-3">
+        <div class="card text-white h-100 shadow-sm" style="background-color: #0d6efd;">
             <div class="card-body">
                 <h5 class="card-title">Total de Consultas</h5>
-                <h3 id="card-total" class="card-text"><?php echo $totalConsultas; ?></h3>
+                <h2 class="card-text"><?php echo $totalConsultas; ?></h2>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-info shadow-sm">
+
+    <div class="col-md-4 mb-3">
+        <div class="card text-white h-100 shadow-sm" style="background-color: #0dcaf0;">
             <div class="card-body">
                 <h5 class="card-title">Procedimentos >= R$ 150</h5>
-                <h3 id="card-filtrados" class="card-text">0</h3>
+                <h2 class="card-text"><?php echo $totalProc150; ?></h2>
             </div>
         </div>
     </div>
 </div>
 
-<a href="agendar.php" class="btn btn-success mb-3">+ Agendar Nova Consulta</a>
+<div class="mb-4">
+    <a href="agendar.php" class="btn btn-success">+ Agendar Nova Consulta</a>
+</div>
+
 <h2>Agenda de Consultas</h2>
 
-<!-- Cards com Layout Original Mantido -->
 <div class="row">
     <?php if (empty($listaConsultas)) { ?>
         <div class="alert alert-warning">Nenhuma consulta encontrada.</div>
@@ -84,23 +118,24 @@ if (isset($_GET['id_excluir'])) {
             <div class="col-md-6 mb-4">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
-                        <h5 class="card-title text-primary"> 👤 Paciente: <?php echo $consulta['paciente_nome']; ?></h5>
-                        <p class="card-text mb-1"><strong>Dentista:</strong> <?php echo $consulta['dentista_nome']; ?></p>
-                        <p class="card-text mb-1"><strong>Procedimento:</strong> <?php echo $consulta['nome_procedimento']; ?></p>
-                        <p class="card-text mb-3"><strong>Data:</strong> <?php echo $consulta['data_consulta']; ?> às <?php echo $consulta['hora_consulta']; ?></p>
+                        <h5 class="card-title text-primary">👤 Paciente: <?php echo htmlspecialchars($consulta['paciente_nome']); ?></h5>
+                        <p class="card-text mb-1"><strong>Dentista:</strong> <?php echo htmlspecialchars($consulta['dentista_nome']); ?></p>
+                        <p class="card-text mb-1"><strong>Procedimento:</strong> <?php echo htmlspecialchars($consulta['nome_procedimento']); ?></p>
+                        <p class="card-text mb-3"><strong>Data:</strong> <?php echo htmlspecialchars($consulta['data_consulta']); ?> às <?php echo htmlspecialchars($consulta['hora_consulta']); ?></p>
 
                         <hr>
 
                         <div class="d-flex justify-content-between align-items-center mt-3">
                             <div>
-                                <small class="text-muted">Valor Original: R$ <?php echo $consulta['valor_base']; ?></small>
+                                <small class="text-muted">Valor Original: R$ <?php echo number_format($consulta['valor_base'], 2, ',', '.'); ?></small>
                                 <br>
-                                <strong>Valor com Desconto: R$ <span class="preco-final"><?php echo $consulta['valor_final']; ?></span></strong>
+                                <strong>Valor com Desconto: R$ <span class="preco-final" data-valor="<?php echo $consulta['valor_base']; ?>"><?php echo number_format($consulta['valor_base'], 2, ',', '.'); ?></span></strong>
                             </div>
 
-                            <a href="index.php?id_excluir=<?php echo $consulta['id_consulta']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir esta consulta?');">
-                                ❌ Excluir
-                            </a>
+                            <div>
+                                <a href="editar_consulta.php?id=<?php echo $consulta['id_consulta']; ?>" class="btn btn-warning btn-sm me-1">✏️ Editar</a>
+                                <a href="index.php?id_excluir=<?php echo $consulta['id_consulta']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir esta consulta?');">❌ Excluir</a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -110,9 +145,4 @@ if (isset($_GET['id_excluir'])) {
     <?php } ?>
 </div>
 
-<!-- Script TS/JS da Sprint 1 -->
-<script src="app.js"></script>
-
-</div>
-</body>
-</html>
+<?php include_once "templates/footer.php"; ?>

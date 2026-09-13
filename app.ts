@@ -1,3 +1,5 @@
+export {};
+
 interface Consulta {
     id_consulta: number;
     paciente_nome: string;
@@ -49,7 +51,7 @@ function parseValorMonetario(valor: string | number | null | undefined): number 
 
 function atualizarInterface(faturamento: number, total: number, filtrados: number): void {
     const elFaturamento = document.getElementById('card-faturamento');
-    if (elFaturamento) elFaturamento.innerText = `R$ ${faturamento.toFixed(2)}`;
+    if (elFaturamento) elFaturamento.innerText = `R$ ${faturamento.toFixed(2).replace('.', ',')}`;
 
     const elTotal = document.getElementById('card-total');
     if (elTotal) elTotal.innerText = total.toString();
