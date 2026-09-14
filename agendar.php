@@ -4,7 +4,6 @@ include_once "templates/cabecalho.php";
 
 $mensagem_erro = "";
 
-// 1. PROCESSA O ENVIO DO FORMULÁRIO
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     try {
         $sql = "INSERT INTO consultas (id_paciente, id_dentista, id_procedimento, data_consulta, hora_consulta, valor_final) 
@@ -26,7 +25,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 }
 
-// 2. BUSCA PACIENTES E DENTISTAS PARA OS SELECTS
 $pacientes = $conexao->query("SELECT id_paciente, nome FROM pacientes ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
 $dentistas = $conexao->query("SELECT id_dentista, nome FROM dentistas ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
 ?>

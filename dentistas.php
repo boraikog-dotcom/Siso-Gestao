@@ -4,12 +4,10 @@ include_once "templates/cabecalho.php";
 
 $msg = "";
 
-// 1. LÓGICA DE CADASTRO DE NOVO DENTISTA
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao_cadastrar'])) {
     $nome = trim($_POST['nome'] ?? '');
     $cro = trim($_POST['cro'] ?? '');
     
-    // Pega a especialidade selecionada no <select> ou a digitada caso escolha "Outra"
     $especialidades = trim($_POST['especialidades_select'] ?? '');
     if ($especialidades === 'Outra' && !empty($_POST['especialidades_outra'])) {
         $especialidades = trim($_POST['especialidades_outra']);
@@ -30,7 +28,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao_cadastrar'])) {
     }
 }
 
-// 2. LÓGICA DE EXCLUSÃO DE DENTISTA
 if (isset($_GET['id_excluir'])) {
     try {
         $stmtDel = $conexao->prepare("DELETE FROM dentistas WHERE id_dentista = :id");
@@ -44,12 +41,10 @@ if (isset($_GET['id_excluir'])) {
     }
 }
 
-// 3. CONSULTA OS DENTISTAS
 $stmt = $conexao->query("SELECT * FROM dentistas ORDER BY nome ASC");
 $dentistas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<!-- MENSAGENS DE NOTIFICAÇÃO -->
 <?php if (isset($_GET['msg']) && $_GET['msg'] == 'cadastrado'): ?>
     <div class="alert alert-success alert-dismissible fade show mb-3">✅ Dentista cadastrado com sucesso!<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
 <?php endif; ?>
@@ -57,7 +52,6 @@ $dentistas = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="alert alert-success alert-dismissible fade show mb-3">✅ Dentista excluído com sucesso!<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
 <?php endif; ?>
 
-<!-- CABEÇALHO COM BOTÃO QUE ABRE O MODAL -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Corpo Clínico (Dentistas)</h2>
     <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalNovoDentista">
@@ -65,7 +59,6 @@ $dentistas = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </button>
 </div>
 
-<!-- LISTA DE DENTISTAS -->
 <div class="row">
     <?php if (empty($dentistas)): ?>
         <div class="alert alert-warning">Nenhum dentista cadastrado.</div>
@@ -89,7 +82,6 @@ $dentistas = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <?php endif; ?>
 </div>
 
-<!-- JANELA MODAL PARA CADASTRO RÁPIDO COM OPÇÕES DE ESPECIALIDADE -->
 <div class="modal fade" id="modalNovoDentista" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -106,7 +98,6 @@ $dentistas = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <input type="text" name="nome" class="form-control" placeholder="Ex: Dr. João Santos" required>
                     </div>
 
-                    <!-- SELEÇÃO DE ESPECIALIDADES DA ODONTOLOGIA -->
                     <div class="mb-3">
                         <label class="form-label">Especialidade *</label>
                         <select name="especialidades_select" id="especialidades_select" class="form-select" onchange="verificarOutraEspecialidade(this)">
@@ -118,7 +109,6 @@ $dentistas = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </select>
                     </div>
 
-                    <!-- CAMPO QUE APARECE SE ESCOLHER "OUTRA" -->
                     <div class="mb-3 d-none" id="div_outra_especialidade">
                         <label class="form-label">Digite a Especialidade</label>
                         <input type="text" name="especialidades_outra" class="form-control" placeholder="Ex: Radiologia Odontológica">

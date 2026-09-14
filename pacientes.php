@@ -2,7 +2,6 @@
 require_once "config.php";
 include_once "templates/cabecalho.php";
 
-// 1. LÓGICA DE CADASTRO DE PACIENTE
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao_cadastrar'])) {
     $nome = trim($_POST['nome'] ?? '');
     $cpf = trim($_POST['cpf'] ?? '');
@@ -24,7 +23,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao_cadastrar'])) {
     }
 }
 
-// 2. LÓGICA DE EXCLUSÃO DE PACIENTE
 if (isset($_GET['id_excluir'])) {
     try {
         $stmtDel = $conexao->prepare("DELETE FROM pacientes WHERE id_paciente = :id");
@@ -38,12 +36,10 @@ if (isset($_GET['id_excluir'])) {
     }
 }
 
-// 3. CONSULTA OS PACIENTES
 $stmt = $conexao->query("SELECT * FROM pacientes ORDER BY nome ASC");
 $pacientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<!-- MENSAGENS DE NOTIFICAÇÃO -->
 <?php if (isset($_GET['msg']) && $_GET['msg'] == 'cadastrado'): ?>
     <div class="alert alert-success alert-dismissible fade show mb-3">✅ Paciente cadastrado com sucesso!<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
 <?php endif; ?>
@@ -54,7 +50,6 @@ $pacientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="alert alert-danger alert-dismissible fade show mb-3">⚠️ Não foi possível excluir o paciente (ele possui consultas vinculadas).<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
 <?php endif; ?>
 
-<!-- CABEÇALHO COM BOTÃO DO MODAL -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Listagem de Pacientes</h2>
     <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalNovoPaciente">
@@ -62,7 +57,6 @@ $pacientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </button>
 </div>
 
-<!-- LISTA DE PACIENTES -->
 <div class="row">
     <?php if (empty($pacientes)): ?>
         <div class="alert alert-warning">Nenhum paciente cadastrado.</div>
@@ -77,7 +71,6 @@ $pacientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         
                         <hr>
                         
-                        <!-- BOTÕES LADO A LADO (JUNTOS) -->
                         <div class="d-flex gap-2">
                             <a href="editar_paciente.php?id=<?php echo $paciente['id_paciente']; ?>" class="btn btn-warning btn-sm">✏️ Editar</a>
                             <a href="pacientes.php?id_excluir=<?php echo $paciente['id_paciente']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Excluir este paciente?');">❌ Excluir</a>
@@ -89,7 +82,6 @@ $pacientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <?php endif; ?>
 </div>
 
-<!-- JANELA MODAL PARA CADASTRO DE PACIENTE -->
 <div class="modal fade" id="modalNovoPaciente" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
