@@ -40,7 +40,6 @@ $dentistas = $conexao->query("SELECT id_dentista, nome FROM dentistas ORDER BY n
     <?php endif; ?>
 
     <form method="POST">
-        <!-- PACIENTE -->
         <div class="mb-3">
             <label class="form-label">Paciente *</label>
             <select name="id_paciente" class="form-select" required>
@@ -51,7 +50,6 @@ $dentistas = $conexao->query("SELECT id_dentista, nome FROM dentistas ORDER BY n
             </select>
         </div>
 
-        <!-- DENTISTA -->
         <div class="mb-3">
             <label class="form-label">Dentista *</label>
             <select name="id_dentista" class="form-select" required>
@@ -62,7 +60,6 @@ $dentistas = $conexao->query("SELECT id_dentista, nome FROM dentistas ORDER BY n
             </select>
         </div>
 
-        <!-- PROCEDIMENTO -->
         <div class="mb-3">
             <label class="form-label">Procedimento *</label>
             <select name="id_procedimento" class="form-select" required>
@@ -74,7 +71,6 @@ $dentistas = $conexao->query("SELECT id_dentista, nome FROM dentistas ORDER BY n
             </select>
         </div>
 
-        <!-- DATA E HORA -->
         <div class="row mb-3">
             <div class="col-md-6">
                 <label class="form-label">Data *</label>
